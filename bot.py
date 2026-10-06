@@ -21,7 +21,7 @@ MIN_AREA = 85
 MIN_FLOORS = 9
 MAX_FLOORS = 16
 DB_FILE = 'seen.txt'
-SLEEP_INTERVAL = 10800  # 3 часа
+SLEEP_INTERVAL = 43200  # 12 часов
 
 def load_seen_apartments():
     if os.path.exists(DB_FILE):
