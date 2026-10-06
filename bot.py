@@ -1,8 +1,17 @@
 import time
 import re
 import os
+import threading
 from bs4 import BeautifulSoup
 from curl_cffi import requests
+from flask import Flask
+
+# --- Flask сервер для Render ---
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
 
 TOKEN = '8385026193:AAEpR5RpPd-W6_OErkJmI4JdVaSTiI2wrQ8'
 URL = 'https://www.list.am/category/60?n=2%2C3%2C5%2C8%2C11&sname=&s=&cmtype=&crc=1&price1=60000&price2=140000&sq_price1=85&sq_price2=&_a5=&_a39=&_a40=&_a85=&_a73=&_a3_1=&_a3_2=&_a4=3%2C4&_a4%5B%5D=3&_a4%5B%5D=4&_a37=&_a36=&_a11_1=&_a11_2=&_a47=&_a78=&_a38=&_a82=&_a77=&s27=9&e27=16'
@@ -12,7 +21,7 @@ MIN_AREA = 85
 MIN_FLOORS = 9
 MAX_FLOORS = 16
 DB_FILE = 'seen.txt'
-SLEEP_INTERVAL = 10800  # Сделаем проверку каждые 3 часа (10800 сек), чтобы быстрее получать свежак!
+SLEEP_INTERVAL = 10800  # 3 часа
 
 def load_seen_apartments():
     if os.path.exists(DB_FILE):
@@ -124,9 +133,16 @@ def send_to_telegram(text):
     import requests as regular_requests
     regular_requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
 
-if __name__ == "__main__":
+def bot_loop():
     print("Бот успешно запущен на Render!")
     while True:
         check_list_am()
         print(f"Ожидаю {SLEEP_INTERVAL} секунд...")
         time.sleep(SLEEP_INTERVAL)
+
+if __name__ == "__main__":
+    # Запуск логики бота в отдельном потоке
+    threading.Thread(target=bot_loop, daemon=True).start()
+    # Запуск веб-сервера на порту, который просит Render
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
