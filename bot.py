@@ -1,7 +1,8 @@
 import os
 import time
+import json
 import threading
-import requests
+import urllib.request
 from flask import Flask
 
 # Настройки Flask
@@ -19,12 +20,14 @@ SLEEP_INTERVAL = 120  # 2 минуты для теста
 def send_to_telegram(text):
     print("Пробую отправить сообщение в Telegram...")
     tele_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    import requests as regular_requests
+    data = json.dumps({'chat_id': CHAT_ID, 'text': text}).encode('utf-8')
+    req = urllib.request.Request(tele_url, data=data, headers={'Content-Type': 'application/json'})
     try:
-        res = regular_requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
-        print(f"Ответ Telegram: {res.status_code} -> {res.text}")
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_text = response.read().decode('utf-8')
+            print(f"Ответ Telegram: {response.status} -> {res_text}")
     except Exception as e:
-        print(f"ОШИБКА при отправке в Telegram: {e}")
+        print(f"ОШИБКА Telegram: {e}")
 
 def check_list_am():
     # Твой код проверки list.am
@@ -36,7 +39,7 @@ def bot_loop():
     while True:
         try:
             print("Проверяю list.am на наличие новых квартир...")
-            check_list_am()  # или точное имя твоей функции
+            check_list_am()
         except Exception as e:
             print(f"Ошибка в боте: {e}")
         print(f"Ожидаю {SLEEP_INTERVAL} секунд...")
