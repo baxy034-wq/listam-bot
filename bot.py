@@ -21,7 +21,7 @@ MIN_AREA = 85
 MIN_FLOORS = 9
 MAX_FLOORS = 16
 DB_FILE = 'seen.txt'
-SLEEP_INTERVAL = 43200  # 12 часов
+SLEEP_INTERVAL = 120  # 2 минуты
 
 def load_seen_apartments():
     if os.path.exists(DB_FILE):
@@ -134,7 +134,10 @@ def send_to_telegram(text):
     regular_requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
 
 def bot_loop():
+   def bot_loop():
     print("Бот успешно запущен на Render!")
+    # ТЕСТОВАЯ СТРОКА:
+    send_to_telegram("🚀 ТЕСТ: Бот на Render работает и на связи!")
     while True:
         check_list_am()
         print(f"Ожидаю {SLEEP_INTERVAL} секунд...")
