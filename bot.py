@@ -13,8 +13,8 @@ def home():
     return "Bot is running!", 200
 
 # Токены и параметры
-TOKEN = "ТВОЙ_ТОКЕН_БОТА"
-CHAT_ID = "ТВОЙ_CHAT_ID"
+TOKEN = "8385026193:AAEpR5RpPd-W6_OErkJmI4JdVaSTiI2wrQ8"
+CHAT_ID = "-5549861681"
 SLEEP_INTERVAL = 120  # 2 минуты для теста
 
 def send_to_telegram(text):
