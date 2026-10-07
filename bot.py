@@ -148,7 +148,7 @@ def bot_loop():
         time.sleep(SLEEP_INTERVAL)
 
 if __name__ == "__main__":
-print("Инициализация запуска бота...")
+    print("Инициализация запуска бота...")
     t = threading.Thread(target=bot_loop, daemon=True)
     t.start()
     
