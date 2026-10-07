@@ -17,9 +17,9 @@ def home():
 # === ВСТАВЬ СВОИ ДАННЫЕ СЮДА ===
 TOKEN = "8385026193:AAEpR5RpPd-W6_OErkJmI4JdVaSTiI2wrQ8"
 CHAT_ID = "-5549861681"
-SLEEP_INTERVAL = 43200  # 12 часов (43200 секунд)
+SLEEP_INTERVAL = 43200  # Проверка каждые 12 часов (43200 секунд)
 
-# Множество для хранения ID проверенных объявлений, чтобы не спамить дублями
+# Набор для хранения ID уже отправленных объявлений
 SEEN_IDS = set()
 
 def send_to_telegram(text):
@@ -35,25 +35,35 @@ def send_to_telegram(text):
         print(f"ОШИБКА Telegram: {e}")
 
 def check_list_am():
-    print("Запрашиваю список квартир с list.am...")
-    # Ссылка на квартиры от 85 кв.м в Ереване
-    url = "https://www.list.am/ru/category/60?n=1&cmtype=1&type=1&po=2&s85=85"
+    print("Запрашиваю список квартир с list.am по твоим критериям...")
+    # Ссылка с фильтрами:
+    # - Центр, Арабкир, Давташен, Малатия-Себастия, Ачапняк
+    # - Вторичка (type=1)
+    # - Площадь 90-130 кв.м (s90=90&s130=130)
+    # - Цена $90,000-$140,000 USD (crc=1&p90000=90000&p140000=140000)
+    # - Собственники + агентства (cmtype=0)
+    url = (
+        "https://www.list.am/ru/category/60"
+        "?n=11_12_13_14_15"
+        "&cmtype=0"
+        "&type=1"
+        "&s90=90&s130=130"
+        "&crc=1"
+        "&p90000=90000&p140000=140000"
+    )
     
     try:
-        # Запрос с маскировкой под браузер Chrome
         response = cffi_requests.get(url, impersonate="chrome110", timeout=15)
         if response.status_code != 200:
             print(f"Ошибка загрузки страницы list.am: статус {response.status_code}")
             return
 
         soup = BeautifulSoup(response.text, 'html.parser')
-        # Находим все блоки объявлений
         items = soup.find_all('a', href=True)
         
         count_new = 0
         for item in items:
             href = item['href']
-            # Проверяем, что это ссылка на конкретное объявление (/item/...)
             if '/item/' in href:
                 item_id = href.split('/item/')[1].split('?')[0]
                 
@@ -62,13 +72,11 @@ def check_list_am():
                     count_new += 1
                     
                     full_url = f"https://www.list.am{href}"
-                    # Берём текст объявления (заголовок/цена)
                     title = item.get_text(strip=True, separator=' ')
                     
-                    # Формируем сообщение
-                    msg = f"🏠 **Новое объявление на list.am!**\n\n{title}\n\n🔗 {full_url}"
+                    msg = f"🏠 **Новая квартира по вашим фильтрам!**\n\n{title}\n\n🔗 {full_url}"
                     send_to_telegram(msg)
-                    time.sleep(1) # небольшая пауза между сообщениями
+                    time.sleep(1)
                     
         print(f"Проверка завершена. Найдено новых объявлений: {count_new}")
 
@@ -77,7 +85,7 @@ def check_list_am():
 
 def bot_loop():
     print("Бот успешно запущен на Render!")
-    send_to_telegram("🚀 Бот запущен и начинает отслеживать квартиры на list.am!")
+    send_to_telegram("🚀 Настройки обновлены! Бот ищет квартиры (90-130 м², $90k-$140k) в Центре, Арабкире, Давташене, Малатии и Ачапняке.")
     while True:
         try:
             print("Начинаю цикл проверки...")
