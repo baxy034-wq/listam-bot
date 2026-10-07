@@ -129,7 +129,7 @@ def check_list_am():
         print(f"Ошибка при проверке: {e}")
 
 def send_to_telegram(text):
-tele_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    tele_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     import requests as regular_requests
     try:
         res = regular_requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
