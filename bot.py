@@ -33,10 +33,10 @@ def bot_loop():
     send_to_telegram("🚀 ТЕСТ: Бот на Render работает и на связи!")
     while True:
         try:
-            print("Проверяю list.am...")
-            check_list_am()
+            print("Проверяю list.am на наличие новых квартир...")
+            check_list_am()  # или точное имя твоей функции
         except Exception as e:
-            print(f"Ошибка в цикле проверки: {e}")
+            print(f"Ошибка в боте: {e}")
         print(f"Ожидаю {SLEEP_INTERVAL} секунд...")
         time.sleep(SLEEP_INTERVAL)
 
