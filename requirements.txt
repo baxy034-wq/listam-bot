@@ -1,4 +1,3 @@
-beautifulsoup4
-curl_cffi
-requests
 flask
+curl_cffi
+beautifulsoup4
