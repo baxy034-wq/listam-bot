@@ -17,12 +17,14 @@ CHAT_ID = "ТВОЙ_CHAT_ID"
 SLEEP_INTERVAL = 120  # 2 минуты для теста
 
 def send_to_telegram(text):
+    print("Пробую отправить сообщение в Telegram...")
     tele_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    import requests as regular_requests
     try:
-        res = requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
+        res = regular_requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
         print(f"Ответ Telegram: {res.status_code} -> {res.text}")
     except Exception as e:
-        print(f"Ошибка отправки в Telegram: {e}")
+        print(f"ОШИБКА при отправке в Telegram: {e}")
 
 def check_list_am():
     # Твой код проверки list.am
