@@ -30,8 +30,7 @@ def send_to_telegram(text):
         print(f"ОШИБКА Telegram: {e}")
 
 def check_list_am():
-    # Твой код проверки list.am
-    pass
+    print("Ищу новые квартиры на list.am...")
 
 def bot_loop():
     print("Бот успешно запущен на Render!")
