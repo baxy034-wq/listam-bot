@@ -40,10 +40,10 @@ def bot_loop():
         print(f"Ожидаю {SLEEP_INTERVAL} секунд...")
         time.sleep(SLEEP_INTERVAL)
 
+print("Инициализация запуска бота...")
+t = threading.Thread(target=bot_loop, daemon=True)
+t.start()
+
 if __name__ == "__main__":
-    print("Инициализация запуска бота...")
-    t = threading.Thread(target=bot_loop, daemon=True)
-    t.start()
-    
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
