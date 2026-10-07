@@ -129,9 +129,13 @@ def check_list_am():
         print(f"Ошибка при проверке: {e}")
 
 def send_to_telegram(text):
-    tele_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+tele_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     import requests as regular_requests
-    regular_requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
+    try:
+        res = regular_requests.post(tele_url, json={'chat_id': CHAT_ID, 'text': text}, timeout=10)
+        print(f"Ответ Telegram: {res.status_code} -> {res.text}")
+    except Exception as e:
+        print(f"Ошибка отправки в Telegram: {e}")
 
 def bot_loop():
    def bot_loop():
@@ -144,8 +148,9 @@ def bot_loop():
         time.sleep(SLEEP_INTERVAL)
 
 if __name__ == "__main__":
-    # Запуск логики бота в отдельном потоке
-    threading.Thread(target=bot_loop, daemon=True).start()
-    # Запуск веб-сервера на порту, который просит Render
+print("Инициализация запуска бота...")
+    t = threading.Thread(target=bot_loop, daemon=True)
+    t.start()
+    
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
