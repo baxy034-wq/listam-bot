@@ -17,10 +17,11 @@ def home():
 # === ВСТАВЬ СВОИ ДАННЫЕ СЮДА ===
 TOKEN = "8385026193:AAEpR5RpPd-W6_OErkJmI4JdVaSTiI2wrQ8"
 CHAT_ID = "-5549861681"
-SLEEP_INTERVAL = 43200  # Проверка каждые 12 часов (43200 секунд)
+SLEEP_INTERVAL = 43200  # Проверка каждые 12 часов
 
 # Набор для хранения ID уже отправленных объявлений
 SEEN_IDS = set()
+IS_FIRST_RUN = True  # Флаг первого запуска
 
 def send_to_telegram(text):
     print("Отправляю сообщение в Telegram...")
@@ -35,13 +36,8 @@ def send_to_telegram(text):
         print(f"ОШИБКА Telegram: {e}")
 
 def check_list_am():
+    global IS_FIRST_RUN
     print("Запрашиваю список квартир с list.am по твоим критериям...")
-    # Ссылка с фильтрами:
-    # - Центр, Арабкир, Давташен, Малатия-Себастия, Ачапняк
-    # - Вторичка (type=1)
-    # - Площадь 90-130 кв.м (s90=90&s130=130)
-    # - Цена $90,000-$140,000 USD (crc=1&p90000=90000&p140000=140000)
-    # - Собственники + агентства (cmtype=0)
     url = (
         "https://www.list.am/ru/category/60"
         "?n=11_12_13_14_15"
@@ -56,36 +52,59 @@ def check_list_am():
         response = cffi_requests.get(url, impersonate="chrome110", timeout=15)
         if response.status_code != 200:
             print(f"Ошибка загрузки страницы list.am: статус {response.status_code}")
+            send_to_telegram(f"⚠️ Ошибка доступа к list.am: код {response.status_code}")
             return
 
         soup = BeautifulSoup(response.text, 'html.parser')
         items = soup.find_all('a', href=True)
         
-        count_new = 0
+        count_sent = 0
+        total_found = 0
+        
         for item in items:
             href = item['href']
             if '/item/' in href:
+                total_found += 1
                 item_id = href.split('/item/')[1].split('?')[0]
                 
-                if item_id not in SEEN_IDS:
-                    SEEN_IDS.add(item_id)
-                    count_new += 1
-                    
-                    full_url = f"https://www.list.am{href}"
-                    title = item.get_text(strip=True, separator=' ')
-                    
-                    msg = f"🏠 **Новая квартира по вашим фильтрам!**\n\n{title}\n\n🔗 {full_url}"
-                    send_to_telegram(msg)
-                    time.sleep(1)
-                    
-        print(f"Проверка завершена. Найдено новых объявлений: {count_new}")
+                # При первом запуске отправляем первые 5 объявлений для проверки
+                if IS_FIRST_RUN:
+                    if count_sent < 5:
+                        SEEN_IDS.add(item_id)
+                        full_url = f"https://www.list.am{href}"
+                        title = item.get_text(strip=True, separator=' ')
+                        msg = f"🏠 **[Тест выдачи] Актуальное объявление:**\n\n{title}\n\n🔗 {full_url}"
+                        send_to_telegram(msg)
+                        count_sent += 1
+                        time.sleep(1)
+                    else:
+                        SEEN_IDS.add(item_id)
+                else:
+                    # При обычных циклах отправляем только НОВЫЕ
+                    if item_id not in SEEN_IDS:
+                        SEEN_IDS.add(item_id)
+                        count_sent += 1
+                        full_url = f"https://www.list.am{href}"
+                        title = item.get_text(strip=True, separator=' ')
+                        msg = f"🏠 **Новая квартира по фильтрам!**\n\n{title}\n\n🔗 {full_url}"
+                        send_to_telegram(msg)
+                        time.sleep(1)
+                        
+        print(f"Проверка завершена. Всего на странице: {total_found}, отправлено: {count_sent}")
+        
+        if IS_FIRST_RUN:
+            IS_FIRST_RUN = False
+            send_to_telegram(f"✅ Первичная проверка завершена! Всего подходящих квартир на сайте сейчас: {total_found}. Выслал 5 штук для примера. Следующие прилетят, только когда появятся свежие!")
+        elif count_sent == 0:
+            send_to_telegram(f"🔍 Проверка завершена. Всего квартир по фильтрам: {total_found}. Новых объявлений за последнее время не появлялось.")
 
     except Exception as e:
         print(f"Ошибка при парсинге list.am: {e}")
+        send_to_telegram(f"⚠️ Ошибка при парсинге: {e}")
 
 def bot_loop():
     print("Бот успешно запущен на Render!")
-    send_to_telegram("🚀 Настройки обновлены! Бот ищет квартиры (90-130 м², $90k-$140k) в Центре, Арабкире, Давташене, Малатии и Ачапняке.")
+    send_to_telegram("🚀 Перезапуск бота! Начинаю поиск квартир...")
     while True:
         try:
             print("Начинаю цикл проверки...")
