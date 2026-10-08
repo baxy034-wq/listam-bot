@@ -48,8 +48,22 @@ def check_list_am():
         "&p90000=90000&p140000=140000"
     )
     
+    # Полная маскировка под реальный браузер Chrome на Windows
+    custom_headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+    }
+
     try:
-        response = cffi_requests.get(url, impersonate="chrome110", timeout=15)
+        response = cffi_requests.get(
+            url, 
+            headers=custom_headers, 
+            impersonate="chrome120", 
+            timeout=20, 
+            verify=False
+        )
+        
         if response.status_code != 200:
             print(f"Ошибка загрузки страницы list.am: статус {response.status_code}")
             send_to_telegram(f"⚠️ Ошибка доступа к list.am: код {response.status_code}")
@@ -94,7 +108,7 @@ def check_list_am():
         
         if IS_FIRST_RUN:
             IS_FIRST_RUN = False
-            send_to_telegram(f"✅ Первичная проверка завершена! Всего подходящих квартир на сайте сейчас: {total_found}. Выслал 5 штук для примера. Следующие прилетят, только когда появятся свежие!")
+            send_to_telegram(f"✅ Первичная проверка завершена! Всего подходящих квартир на сайте сейчас: {total_found}. Выслал 5 штук для примера.")
         elif count_sent == 0:
             send_to_telegram(f"🔍 Проверка завершена. Всего квартир по фильтрам: {total_found}. Новых объявлений за последнее время не появлялось.")
 
@@ -104,7 +118,7 @@ def check_list_am():
 
 def bot_loop():
     print("Бот успешно запущен на Render!")
-    send_to_telegram("🚀 Перезапуск бота! Начинаю поиск квартир...")
+    send_to_telegram("🚀 Перезапуск бота с обходом блокировки...")
     while True:
         try:
             print("Начинаю цикл проверки...")
